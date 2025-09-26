@@ -220,18 +220,12 @@ class PackMIL(nn.Module):
                 else:
                     _is_multi_lalbel = not (isinstance(self.residual_loss, nn.CrossEntropyLoss)
                                             or isinstance(self.residual_loss, AsymmetricLossSingleLabel))
-                if self.task_type == 'surv':
-                    _task = 'surv'
-                elif self.task_type == 'grade':
-                    _task = 'grade'
-                else:
-                    _task = 'subtype'
                 y_res = mixup_target_batched(
                     label_res,
                     num_classes=self.n_classes,
                     multi_label=_is_multi_lalbel,
                     batched_num_ps=batched_num_ps_res if self.residual_ps_weight else None,
-                    target_task=_task
+                    target_task=self.task_type
                 )
                 if isinstance(_logits_res, list):
                     if self.task_type == 'surv':
@@ -285,8 +279,3 @@ class PackMIL(nn.Module):
                 x[1] = x_res[1]
             else:
                 x = x_res
-<<<<<<< HEAD
-            return x
-=======
-            return x
->>>>>>> dev_local

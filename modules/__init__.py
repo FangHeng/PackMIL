@@ -1,9 +1,7 @@
 import torch
 
-<<<<<<< HEAD
-=======
+
 from .abmil import DAttention,AttentionGated
->>>>>>> dev_local
 from .clam import CLAM_MB,CLAM_SB
 from .dsmil import MILNet
 from .transmil import TransMIL
@@ -123,13 +121,6 @@ def build_mil(args,model_name,device):
         elif args.baseline == 'vitmil':
             from modules.pack.pack_baseline import SAttention as SAAggregate
             model = MILBase(aggregate_fn=SAAggregate, **genera_model_params).to(device)
-<<<<<<< HEAD
-    elif model_name == 'meanP':
-        model = MeanPooling(**genera_model_params).to(device)
-    elif model_name == 'attn':
-        model = Attention(**genera_model_params).to(device)
-=======
->>>>>>> dev_local
     elif model_name == 'gigap':
         model = GIGAPMIL(**genera_model_params).to(device)
     elif model_name == 'chief':

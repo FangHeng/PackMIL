@@ -2,9 +2,9 @@
 
 <p align="center">
 <a href="https://arxiv.org/abs/2509.20923"><img src="https://img.shields.io/badge/arXiv-Paper-b31b1b?logo=Arxiv"></a>
-<!-- <a href=""><img src="https://img.shields.io/badge/HuggingFace-Data-ffd21e?logo=huggingface"></a>
-<a href=""><img src="https://img.shields.io/badge/百度网盘-数据-06a7ff?logo=baidu"></a>
-<a href=""><img src="https://img.shields.io/badge/知乎-中文讲解-1772f6?logo=zhihu"></a> -->
+<a href="https://pan.baidu.com/s/1OuiIP3sB68IGZeId4s4K7Q?pwd=ujtq"><img src="https://img.shields.io/badge/百度网盘-Data-06a7ff?logo=baidu"></a>
+<!-- <a href=""><img src="https://img.shields.io/badge/HuggingFace-Data-ffd21e?logo=huggingface"></a> -->
+<!-- <a href=""><img src="https://img.shields.io/badge/知乎-中文讲解-1772f6?logo=zhihu"></a> -->
 </p>
 
 <h5 align="center"><em>Wenhao Tang<sup>*</sup>, Heng Fang<sup>*</sup>, Ge Wu, Xiang Li<sup>†</sup>, Ming-Ming Cheng<sup>†</sup> </em></h5>
@@ -36,7 +36,8 @@ Computational pathology (CPath) digitizes pathology slides into whole slide imag
 - [x] Add the code for the training and testing of the model.
 - [x] Add the code for the preprocessing of the datasets.
 - [ ] Upload experiment Docker environment.
-- [ ] Upload the extracted features of the datasets.
+- [x] Upload the extracted features of the datasets on Baidu Netdisk.
+- [ ] Upload the extracted features of the datasets on huggingface.
 - [ ] Add the code for the visualization of the results.
 - [ ] Improving README document.
 - [ ] Improving the code structure.
@@ -147,5 +148,13 @@ CUDA_VISIBLE_DEVICES=$TARGET_GPU bash single_train.sh train --datasets=surv_{dat
 If you find this repository useful for your research, please consider citing our paper:
 
 ```bibtex
-
+@misc{tang2025revisitingdatachallengescomputational,
+      title={Revisiting Data Challenges of Computational Pathology: A Pack-based Multiple Instance Learning Framework}, 
+      author={Wenhao Tang and Heng Fang and Ge Wu and Xiang Li and Ming-Ming Cheng},
+      year={2025},
+      eprint={2509.20923},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2509.20923}, 
+}
 ```

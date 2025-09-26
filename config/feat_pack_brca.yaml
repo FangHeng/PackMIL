@@ -1,0 +1,28 @@
+# training
+opt: adam
+weight_decay: 1e-5
+act: gelu
+file_worker: true
+num_workers: 6
+seed: 2021
+
+# brca
+num_epoch: 75
+max_epoch: 30
+cv_fold: 5
+random_fold: true
+val2test: true
+val_ratio: 0.
+
+# pack
+pack_bs: true
+pack_residual: true
+
+pack_max_seq_len: 2400
+min_seq_len: 128
+pack_residual_loss: focal
+aux_alpha: 0.2
+pack_residual_downsample_r: 4
+lr: 0.0005
+pack_downsample_mode: ads
+empty_cuda_cache: true

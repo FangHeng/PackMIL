@@ -1,0 +1,30 @@
+# training
+opt: adam
+weight_decay: 1e-5
+act: gelu
+file_worker: true
+num_workers: 6
+seed: 2021
+
+# panda
+num_epoch: 100
+max_epoch: 75
+cv_fold: 5
+random_fold: true
+val_ratio: 0.125
+
+# pack
+pack_bs: true
+pack_residual: true
+
+pack_max_seq_len: 600
+min_seq_len: 0
+pack_residual_loss: asl_single
+aux_alpha: 0.2
+pack_residual_ps_weight: true
+lr: 0.001
+pack_downsample_mode: no_pu
+mil_norm: bn
+no_norm_pad: true
+pack_singlelabel: true
+empty_cuda_cache: true

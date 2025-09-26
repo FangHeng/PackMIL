@@ -43,7 +43,7 @@ Computational pathology (CPath) digitizes pathology slides into whole slide imag
 - [x] Add the code for the training and testing of the model.
 - [x] Add the code for the preprocessing of the datasets.
 - [ ] Upload experiment Docker environment.
-- [ ] Upload the extracted features of the datasets.
+- [ ] Upload the extracted features of the datasets (Huggingface, Baidu Netdisk, and ModelScope).
 - [ ] Add the code for the visualization of the results.
 - [ ] Improving README document.
 <!-- - [ ] Improving the code structure. -->
@@ -57,7 +57,7 @@ We recommend using Docker for a reproducible environment. Alternatively, you can
 
 #### Option 1: Docker (Recommended)
 
-1. Download the Docker Image: [Docker Image Link]() (Password: 2025)
+1. Download the Docker Image: [Docker Image Link](https://pan.baidu.com/s/1crrTL-9NWp3otkiYw6z8dw?pwd=2025) (Password: 2025)
 2. Load the Docker image:
     ```bash
     docker load -i XXX.tar

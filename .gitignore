@@ -19,6 +19,7 @@ train.sh
 /ranger/__pycache__/
 # Byte-compiled / optimized / DLL files
 __pycache__/
+/.history/
 *.py[cod]
 *$py.class
 

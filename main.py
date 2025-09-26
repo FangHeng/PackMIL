@@ -36,6 +36,8 @@ def main(args,device):
 
         if args.cv_fold > 1:
             train_dfs, test_dfs, val_dfs = get_kfold(args,args.cv_fold, df, val_ratio=args.val_ratio)
+            if args.val_ratio == 0:
+                val_dfs = test_dfs
 
     if args.datasets.lower().startswith('surv'):
         cindex,cindex_std, te_cindex = [],[],[]
@@ -51,7 +53,7 @@ def main(args,device):
         ckc_metric_ema = [auc_ema,acc_ema, pre_ema, rec_ema,fs_ema,ck_ema,acc_m_ema,auc_ema_std,acc_ema_std,fs_ema_std,ck_ema_std,acc_m_ema_std]
         te_ckc_metric = [te_auc,te_fs]
 
-    if not args.no_log and args.rank == 0:
+    if args.rank == 0:
         print('Dataset: ' + args.datasets)
 
     for k in range(args.fold_start, args.cv_fold):
@@ -73,7 +75,7 @@ def main(args,device):
             }
 
         args.fold_curr = k
-        if not args.no_log and args.rank == 0:
+        if args.rank == 0:
             print('Start %d-fold cross validation: fold %d ' % (args.cv_fold, k))
         ckc_metric,te_ckc_metric,ckc_metric_ema = one_fold(args,device,ckc_metric,te_ckc_metric,ckc_metric_ema,dataset)
 
@@ -166,7 +168,7 @@ def main(args,device):
                 "cross_val/acc_micro_ema_std":np.std(np.array(acc_m_ema)),
             })
 
-    if not args.no_log and args.rank == 0:
+    if args.rank == 0:
         if args.datasets.lower().startswith('surv'):
             print('Cross validation c-index mean: %.4f, std %.4f ' % (np.mean(np.array(cindex)), np.std(np.array(cindex))))
             if args.test_type != 'main' or args.model_ema:
@@ -200,7 +202,7 @@ def one_fold(args,device,ckc_metric,te_ckc_metric,ckc_metric_ema,dataset):
     train_loader,val_loader,test_loader = build_dataloader(args,dataset)
 
     # --->bulid networks
-    model,model_others = build_model(args,device,train_loader)
+    model,model_others = build_model(args,device)
 
     # --->ema 
     if args.model_ema:
@@ -228,7 +230,7 @@ def one_fold(args,device,ckc_metric,te_ckc_metric,ckc_metric_ema,dataset):
         allow_ops_in_compiled_graph()
 
     # --->build criterion,optimizer,scheduler,early-stopping
-    criterion,optimizer,scheduler,early_stopping = build_train(args,model,train_loader)
+    criterion,optimizer,scheduler,early_stopping = build_train(args,model)
 
     # --->metric
     best_ckc_metric = [0. for i in range(len(ckc_metric))]
@@ -329,7 +331,7 @@ def one_fold(args,device,ckc_metric,te_ckc_metric,ckc_metric_ema,dataset):
                                 wandb.log(rowd)
                 
                 # logging and wandb
-                if not args.no_log and args.rank == 0:
+                if args.rank == 0:
                     if args.datasets.lower().startswith('surv'):
                         print('\r Epoch [%d/%d] train loss: %.1E, test loss: %.1E, c-index: %.4f, time: %.4f(%.4f)' % (epoch+1, args.num_epoch, train_loss, test_loss, _metric_val[0], train_time_meter.val,train_time_meter.avg))
                     else:
@@ -355,7 +357,7 @@ def one_fold(args,device,ckc_metric,te_ckc_metric,ckc_metric_ema,dataset):
                     opt_thr = threshold_optimal
                     if not os.path.exists(args.output_path):
                         os.mkdir(args.output_path)
-                    if not args.no_log and args.rank==0:
+                    if args.rank==0:
                         _ema_ckp = model_ema.state_dict() if model_ema is not None else None
                         if 'model_ema' in model_others and model_others['model_ema'] is not None:
                             _ema_ckp = model_others['model_ema'].state_dict()
@@ -372,7 +374,7 @@ def one_fold(args,device,ckc_metric,te_ckc_metric,ckc_metric_ema,dataset):
                         best_ckc_metric_ema = _metric_val_ema+[epoch]
                         if not os.path.exists(args.output_path):
                             os.mkdir(args.output_path)
-                        if not args.no_log and args.rank==0:
+                        if args.rank==0:
                             _ema_ckp = model_ema.state_dict() if model_ema is not None else None
                             if 'model_ema' in model_others and model_others['model_ema'] is not None:
                                 _ema_ckp = model_others['model_ema'].state_dict()
@@ -412,27 +414,26 @@ def one_fold(args,device,ckc_metric,te_ckc_metric,ckc_metric_ema,dataset):
     if args.distributed:
         dist.barrier()
 
-    if not args.no_log:
-        best_std = None
-        if os.path.exists(os.path.join(args.output_path, f'fold_{args.fold_curr}_model_best.pt')):
-            best_std = torch.load(os.path.join(args.output_path, 'fold_{fold}_model_best.pt'.format(fold=args.fold_curr)),map_location='cpu',weights_only=True)
+    best_std = None
+    if os.path.exists(os.path.join(args.output_path, f'fold_{args.fold_curr}_model_best.pt')):
+        best_std = torch.load(os.path.join(args.output_path, 'fold_{fold}_model_best.pt'.format(fold=args.fold_curr)),map_location='cpu',weights_only=True)
 
-        if os.path.exists(os.path.join(args.output_path, f'fold_{args.fold_curr}_ema_model_best.pt')):
-            best_std_ema = torch.load(os.path.join(args.output_path, 'fold_{fold}_ema_model_best.pt'.format(fold=args.fold_curr)),map_location='cpu',weights_only=True)
+    if os.path.exists(os.path.join(args.output_path, f'fold_{args.fold_curr}_ema_model_best.pt')):
+        best_std_ema = torch.load(os.path.join(args.output_path, 'fold_{fold}_ema_model_best.pt'.format(fold=args.fold_curr)),map_location='cpu',weights_only=True)
 
-        if best_std is not None:
-            info = model.load_state_dict(best_std['model'])
-            if args.rank == 0:
-                print(f"Epoch {best_std['epoch']} Main Model Loaded: {info}")
+    if best_std is not None:
+        info = model.load_state_dict(best_std['model'])
+        if args.rank == 0:
+            print(f"Epoch {best_std['epoch']} Main Model Loaded: {info}")
 
-        if model_ema is not None and best_std_ema['teacher'] is not None:
-            info = model_ema.load_state_dict(best_std_ema['teacher'])
-            if args.rank == 0:
-                print(f"Epoch {best_std_ema['epoch']} EMA Model Loaded: {info}")
-        if args.test_type != 'main':
-            info = model_others['model_ema'].load_state_dict(best_std_ema['teacher'])
-            if args.rank == 0:
-                print(f"Epoch {best_std_ema['epoch']} EMA Model Loaded: {info}")
+    if model_ema is not None and best_std_ema['teacher'] is not None:
+        info = model_ema.load_state_dict(best_std_ema['teacher'])
+        if args.rank == 0:
+            print(f"Epoch {best_std_ema['epoch']} EMA Model Loaded: {info}")
+    if args.test_type != 'main':
+        info = model_others['model_ema'].load_state_dict(best_std_ema['teacher'])
+        if args.rank == 0:
+            print(f"Epoch {best_std_ema['epoch']} EMA Model Loaded: {info}")
 
     metric_test,test_loss_log,rowd = validate(args,model=model,loader=test_loader,device=device,criterion=criterion,amp_autocast=amp_autocast,status='test',others=model_others)
 
@@ -535,7 +536,7 @@ if __name__ == '__main__':
                     args.seed = args.seed_ori + i*100
                     args.output_path = os.path.join(_output,f's{i}')
                     args.rsf_curr = i
-                    if not args.no_log and args.rank == 0:
+                    if args.rank == 0:
                         print('Start %d-fold RSF validation: random %d ' % (args.random_seed_fold, i))
                     cindex,cindex_std, cindex_ema = main(args=args,device=device)
                     if args.wandb and args.rank == 0:
@@ -565,7 +566,7 @@ if __name__ == '__main__':
                     args.seed = args.seed_ori + i * 100
                     args.output_path = os.path.join(_output, f's{i}')
                     args.rsf_curr = i
-                    if not args.no_log and args.rank == 0:
+                    if args.rank == 0:
                         print('Start %d-fold RSF validation: random %d ' % (args.random_seed_fold, i))
 
                     (acc, auc, fs, pre, rec, ck, acc_m,

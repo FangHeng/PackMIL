@@ -116,16 +116,22 @@ group.add_argument('--wikg_pool', default='attn', type=str, help='Pool of the Wi
 ##### PackMIL
 group = parser.add_argument_group('PackMIL')
 group.add_argument('--pack_bs', action='store_true', help='use packmil')
-group.add_argument('--token_dropout', default=0., type=float, help='Drop ratio applied when sampling tokens for packing')
-group.add_argument('--pack_max_seq_len', default=5120, type=int, help='Maximum packed sequence length per bag')
+# Default is good enough
+group.add_argument('--token_dropout', default=0.5, type=float, help='Drop ratio applied when sampling tokens for packing')
+group.add_argument('--pack_residual_downsample_r', default=4, type=int, help='Downsample ratio used by the residual branch')
+group.add_argument('--pack_residual_type', default="norm", type=str, choices=['norm', 'dual_cls'], help='whether to use a separate classifier for the residual branch. default not to use a separate classifier.')
+group.add_argument('--pack_pad_r', action='store_true', help='only for survival task, pad the sequence to be divisible by pack_residual_downsample_r')
+# Adaption for different tasks
 group.add_argument('--min_seq_len', default=128, type=int, help='Minimum sequence length enforced after packing')
-group.add_argument('--no_norm_pad', action='store_true', help='Skip normalization on padded tokens when packing')
-group.add_argument('--pack_residual', action='store_true', help='Enable residual branch to learn from dropped tokens')
-group.add_argument('--pack_residual_loss', default="bce", type=str, choices=['bce', 'asl', 'ce', 'nll', 'asl_single', 'focal'])
+group.add_argument('--pack_max_seq_len', default=2400, type=int, help='Maximum packed sequence length per bag')
+group.add_argument('--pack_residual_loss', default="bce", type=str, choices=['bce', 'ce', 'nll', 'asl_single', 'focal'])
+group.add_argument('--pack_downsample_mode', default="none", type=str, choices=['none','ads'], help='Strategy used to downsample sequences inside PackMIL')
+group.add_argument('--pack_downsample_type', default="random", type=str, choices=['random','max'], help='Random for subtype, max for survival. max is more easy to converge. Pooling strategy used when downsampling sequences inside ADS.')
+# For Grading task, e.g., PANDA
 group.add_argument('--pack_residual_ps_weight', action='store_true', help='Weight residual targets by the number of kept patches')
-group.add_argument('--pack_residual_downsample_r', default=None, type=int, help='Downsample ratio used by the residual branch')
-group.add_argument('--pack_downsample_mode', default="ads", type=str, choices=['no_pu','ads'], help='Strategy used to downsample sequences inside PackMIL')
 group.add_argument('--pack_singlelabel', action='store_true', help='Treat residual supervision as single-label targets')
+# Only for Ablation
+group.add_argument('--pack_no_residual', action='store_true', help='[Only for Ablation] Disable residual branch to learn from dropped tokens')
 
 ##### RRT
 group = parser.add_argument_group('RRT')

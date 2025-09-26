@@ -8,12 +8,25 @@ loss: nll_surv
 n_classes: 4
 act: gelu
 
-val_raito: 0.
+val_raito: 0.125
 max_epoch: 30
 file_worker: true
 num_workers: 6
 no_deter_algo: true
+warmup_epoch: 3
 
 cv_fold: 3
 random_seed_fold: 3
 empty_cuda_cache: true
+
+# pack
+pack_bs: true
+pack_residual: true
+
+pack_max_seq_len: 3200
+min_seq_len: 256
+pack_residual_loss: nll
+aux_alpha: 0.5
+pack_residual_downsample_r: 3
+lr: 0.001
+pack_downsample_mode: ads

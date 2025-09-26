@@ -19,9 +19,9 @@ def _get_feat_dataloader(args,dataset,root,train=True,prefetch=True,sub_root=Non
     else:
         p,l = dataset
         if train:
-            _dataset = FeatClsDataset(p,l,root,persistence=args.persistence,keep_same_psize=keep_same_psize,is_train=True,_type=args.datasets,return_id=False,token_dropout=args.token_dropout,max_ps=args.pack_max_seq_len,min_ps=args.min_seq_len,args=args)
+            _dataset = FeatClsDataset(p,l,root,persistence=args.persistence,keep_same_psize=keep_same_psize,is_train=True,_type=args.datasets,return_id=False,args=args)
         else:
-            _dataset = FeatClsDataset(p,l,root,persistence=args.persistence,_type=args.datasets,token_dropout=args.token_dropout,max_ps=args.pack_max_seq_len,min_ps=args.min_seq_len,args=args)
+            _dataset = FeatClsDataset(p,l,root,persistence=args.persistence,_type=args.datasets,args=args)
 
     loader_kwargs = {'pin_memory':args.pin_memory}
 

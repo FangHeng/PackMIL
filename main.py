@@ -200,7 +200,7 @@ def one_fold(args,device,ckc_metric,te_ckc_metric,ckc_metric_ema,dataset):
     train_loader,val_loader,test_loader = build_dataloader(args,dataset)
 
     # --->bulid networks
-    model,model_others = build_model(args,device,train_loader)
+    model,model_others = build_model(args,device)
 
     # --->ema 
     if args.model_ema:

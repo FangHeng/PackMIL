@@ -1,5 +1,9 @@
 import torch
 
+<<<<<<< HEAD
+=======
+from .abmil import DAttention,AttentionGated
+>>>>>>> dev_local
 from .clam import CLAM_MB,CLAM_SB
 from .dsmil import MILNet
 from .transmil import TransMIL
@@ -17,18 +21,27 @@ from .utils import get_mil_model_params,get_mil_model_params_from_name
 
 import os 
 
-def build_model(args,device,train_loader):
+def build_model(args,device):
     if args.pack_bs:
         others = {}
-        genera_model_params,genera_trans_params = get_mil_model_params(args)
+        _,genera_trans_params = get_mil_model_params(args)
         genera_trans_params.update(get_mil_model_params_from_name(args,args.model))
+        task_type = 'surv' if args.datasets.lower().startswith('surv') else 'grade' if 'panda' in args.datasets.lower() else 'subtype'
         model = PackMIL(
-            args=args,mil=args.model,token_dropout=args.token_dropout,
+            mil=args.model,
+            task_type=task_type,
+            token_dropout=args.token_dropout,
             group_max_seq_len=args.pack_max_seq_len,
             min_seq_len=args.min_seq_len,
-            max_ps_glo=args.max_ps_glo if hasattr(args,'max_ps_glo') else 0,
-            min_ps_glo=args.min_ps_glo if hasattr(args,'min_ps_glo') else 0,
-            no_norm_pad=args.no_norm_pad,
+            pack_residual=not args.pack_no_residual,
+            residual_loss=args.pack_residual_loss,
+            downsample_mode=args.pack_downsample_mode,
+            downsample_type=args.pack_downsample_type,
+            residual_type=args.pack_residual_type,
+            residual_ps_weight=args.pack_residual_ps_weight,
+            singlelabel=args.pack_singlelabel,
+            downsample_r=args.pack_residual_downsample_r,
+            pad_r=args.pack_pad_r,
             epeg_k=args.epeg_k,
             crmsa_k=args.crmsa_k,
             region_num=args.region_num,
@@ -110,10 +123,13 @@ def build_mil(args,model_name,device):
         elif args.baseline == 'vitmil':
             from modules.pack.pack_baseline import SAttention as SAAggregate
             model = MILBase(aggregate_fn=SAAggregate, **genera_model_params).to(device)
+<<<<<<< HEAD
     elif model_name == 'meanP':
         model = MeanPooling(**genera_model_params).to(device)
     elif model_name == 'attn':
         model = Attention(**genera_model_params).to(device)
+=======
+>>>>>>> dev_local
     elif model_name == 'gigap':
         model = GIGAPMIL(**genera_model_params).to(device)
     elif model_name == 'chief':

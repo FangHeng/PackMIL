@@ -20,34 +20,6 @@ def initialize_weights(module):
         if hasattr(m,'init_weights'):
             m.init_weights()
 
-class Resnet(nn.Module):
-    def __init__(self):
-        super(Resnet, self).__init__()
-
-        self.model = list(models.resnet50(pretrained = True).children())[:-1]
-        self.features = nn.Sequential(*self.model)
-
-        self.feature_extractor_part2 = nn.Sequential(
-            nn.Linear(2048, 4096),
-            nn.ReLU(),
-            nn.Dropout(p=0.25),
-            nn.Linear(4096, 512),
-            nn.ReLU(),
-            nn.Dropout(p=0.25)
-        )
-        self.classifier = nn.Linear(512,1)
-        initialize_weights(self.feature_extractor_part2)
-        initialize_weights(self.classifier)
-    def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        x=self.feature_extractor_part2(x)
-        # feat = torch.mean(x,dim=0)
-        x1 = self.classifier(x)
-        # x2 = torch.mean(x1, dim=0).view(1,-1)
-        x2,_ = torch.max(x1, dim=0)
-        x2=x2.view(1,-1)
-        return x2,x
 class AttentionGated(nn.Module):
     def __init__(self,input_dim,n_classes,act='relu',dropout=0.,mil_norm=None,mil_bias=True,mil_cls_bias=True,inner_dim=512,embed_feat=True,embed_norm_pos=0,pos=None,**kwargs):
         super(AttentionGated, self).__init__()

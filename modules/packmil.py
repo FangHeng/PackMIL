@@ -1,97 +1,78 @@
 import torch
-from torch import Tensor, nn
+from torch import nn
 import numpy as np
-from timm.loss import AsymmetricLossMultiLabel, AsymmetricLossSingleLabel
+from timm.loss import AsymmetricLossSingleLabel
 
-from modules.pack.pack_baseline import MILBase, DAttention, SAttention, DSAttention, RRTMIL
-from modules.pack.pack_util import *
-from modules.pack.packing import get_packs
-from modules.pack.ads import ADS
-from train_utils import NLLSurvMulLoss, BCESurvLoss, FocalLoss
-
+from .pack.pack_baseline import MILBase, DAttention, SAttention, DSAttention, RRTMIL
+from .pack.pack_util import *
+from .pack.packing import get_packs
+from .pack.ads import ADS
+from .pack.pack_loss import NLLSurvMulLoss, BCESurvLoss, FocalLoss
 
 class PackMIL(nn.Module):
-    def __init__(self, args, mil=None, token_dropout=0., group_max_seq_len=2048, min_seq_len=512,
-                token_dropout_sub=0., max_ps_glo=0, min_ps_glo=0, no_norm_pad=False,
-                 **mil_kwargs):
+    def __init__(self, mil='abmil', task_type="sub", token_dropout=0.5, group_max_seq_len=2048, min_seq_len=512,
+                 pack_residual=True, downsample_mode='none', residual_loss='bce', residual_downsample_r=1,
+                 residual_ps_weight=False, pad_r=False, singlelabel=False, residual_type='norm',
+                 downsample_type='random', **mil_kwargs):
         super(PackMIL, self).__init__()
 
         if 'mil_norm' in mil_kwargs:
             if mil_kwargs['mil_norm'] == 'bn':
-                assert no_norm_pad
-
+                no_norm_pad = True
         self.pool = mil_kwargs.get('pool', 'cls_token')
-
         mil_kwargs['attn_type'] = 'naive'
-
         if self.pool == 'cls_token':
             mil_kwargs['pool'] = 'cls_token'
-
         self.need_attn_mask = False
-        n_classes = 0
-        self.is_surv = 'surv' in args.datasets
-        self.is_grad = 'panda' in args.datasets
-        self.downsample_mode = getattr(args, 'pack_downsample_mode', 'ads')
+        self.n_classes = mil_kwargs.pop('n_classes')
+        mil_kwargs['n_classes'] = 0
+
+        self.task_type = task_type  # surv, grade, subtype
+        self.downsample_mode = downsample_mode
 
         if mil == 'abmil':
-            n_classes = mil_kwargs.pop('n_classes')
-            mil_kwargs['n_classes'] = 0
             self.mil = MILBase(aggregate_fn=DAttention, **mil_kwargs)
             self.pool = None
         elif mil == 'dsmil':
             _n_classes = mil_kwargs.pop('n_classes')
-            mil_kwargs['n_classes'] = 0
             mil_kwargs['agg_n_classes'] = _n_classes
             self.mil = MILBase(aggregate_fn=DSAttention, **mil_kwargs)
             self.pool = None
         elif mil == 'vitmil':
-            n_classes = mil_kwargs.pop('n_classes')
-            mil_kwargs['n_classes'] = 0
             self.mil = MILBase(aggregate_fn=SAttention, **mil_kwargs)
             self.need_attn_mask = True
         elif mil == 'transmil':
             mil_kwargs['attn_type'] = 'ntrans'
-            n_classes = mil_kwargs.pop('n_classes')
-            mil_kwargs['n_classes'] = 0
             mil_kwargs['pos'] = 'ppeg'
             self.mil = MILBase(aggregate_fn=SAttention, **mil_kwargs)
-            self.need_attn_mask = False
         elif mil == 'rrtmil':
-            n_classes = mil_kwargs.pop('n_classes')
-            mil_kwargs['n_classes'] = 0
             self.mil = MILBase(aggregate_fn=RRTMIL, **mil_kwargs)
-            self.need_attn_mask = False
             self.pool = None
         else:
             raise NotImplementedError
 
-        self.predictor = nn.Linear(mil_kwargs['inner_dim'], n_classes) if n_classes > 0 else nn.Identity()
-        if args.pack_residual:
-            if args.pack_residual_loss == 'bce':
-                if self.is_surv:
-                    self.residual_loss = BCESurvLoss()
-                else:
-                    self.residual_loss = nn.BCEWithLogitsLoss()
-            elif args.pack_residual_loss == 'asl':
-                self.residual_loss = AsymmetricLossMultiLabel(gamma_neg=1, gamma_pos=4)
-            elif args.pack_residual_loss == 'asl_single':
+        self.predictor = nn.Linear(mil_kwargs['inner_dim'], self.n_classes) if self.n_classes > 0 else nn.Identity()
+        
+        if pack_residual:
+            if residual_loss == 'bce':
+                self.residual_loss = nn.BCEWithLogitsLoss()
+            elif residual_loss == 'asl_single':
                 self.residual_loss = AsymmetricLossSingleLabel(gamma_pos=1, gamma_neg=4, eps=0.)
-            elif args.pack_residual_loss == 'focal':
+            elif residual_loss == 'focal':
                 self.residual_loss = FocalLoss(alpha=0.25, gamma=2.0)
-            elif args.pack_residual_loss == 'ce':
+            elif residual_loss == 'ce':
                 self.residual_loss = nn.CrossEntropyLoss()
-            elif args.pack_residual_loss == 'nll':
+            elif residual_loss == 'nll':
                 self.residual_loss = NLLSurvMulLoss()
 
-            _n_classes_mix = n_classes if n_classes > 0 else _n_classes
+            _n_classes_mix = self.n_classes if self.n_classes > 0 else _n_classes
             if mil == 'dsmil':
-                if getattr(args, 'pack_residual_type', 'dual_cls') == 'dual_cls':
+                if residual_type == 'dual_cls':
                     self.predictor_res = nn.Conv1d(_n_classes_mix, _n_classes_mix, kernel_size=mil_kwargs['inner_dim'])
                 else:
                     self.predictor_res = None
             else:
-                self.predictor_res = nn.Linear(mil_kwargs['inner_dim'],
-                                               _n_classes_mix) if getattr(args, 'pack_residual_type', 'dual_cls') == 'dual_cls' else None
+                self.predictor_res = nn.Linear(mil_kwargs['inner_dim'], _n_classes_mix) if residual_type == 'dual_cls' else None
         else:
             self.residual_loss = None
             self.predictor_res = None
@@ -99,72 +80,34 @@ class PackMIL(nn.Module):
         self.token_dropout = token_dropout
         self.group_max_seq_len = group_max_seq_len
         self.min_seq_len = min_seq_len
-        self.token_dropout_sub = token_dropout_sub
-        self.max_ps_glo = max_ps_glo
-        self.min_ps_glo = min_ps_glo
         self.no_norm_pad = no_norm_pad
-        self.residual = args.pack_residual
-        self.num_classes = args.n_classes
-
-        self.mean_ps_glo = getattr(args, 'mean_ps_glo', 0)
-        self.residual_smooth = getattr(args, 'pack_residual_smooth', 0.0)
-        self.no_dynamic_length = getattr(args, 'pack_no_dynamic_length', False)
-        self.residual_ps_weight = getattr(args, 'pack_residual_ps_weight', False)
-        self.downsample_r = getattr(args, 'pack_residual_downsample_r', None)
-        self.no_dr_pad = getattr(args, 'pack_no_dr_pad', False)
-        pack_force_mlp = getattr(args, 'pack_force_mlp', 'mlp')
-        self.all_pu = getattr(args, 'pack_all_pu', False)
-
-        if self.token_dropout == 0.:
-            self.token_dropout = 0.5
-
-        if pack_force_mlp == 'mlp':
-            _force_mlp = True
-        elif pack_force_mlp == 'no_mlp':
-            _force_mlp = False
-        else:
-            raise NotImplementedError
-
-        if self.downsample_r is None:
-            self.downsample_r = 1
+        self.residual = pack_residual
+        self.residual_ps_weight = residual_ps_weight
+        self.downsample_r = residual_downsample_r
 
         if self.downsample_mode == 'ads':
             self.downsampler = ADS(r=self.downsample_r,
                                    D=mil_kwargs.get('input_dim', 1024),
-                                   bias=not getattr(args, 'pack_downsample_no_bias', False),
-                                   act=mil_kwargs.get('act', 'relu'),
-                                   hidden_dim=getattr(args, 'pack_downsample_D', None),
-                                   include_padding=not self.no_dr_pad,
-                                   force_mlp=_force_mlp,
-                                   layer_num=getattr(args, 'pack_downsample_layer', 2),
-                                   attn_act=getattr(args, 'pack_downsample_attn_act', 'tanh'),
-                                   _type=getattr(args, 'pack_downsample_type', 'random'),
-                                   no_para_downsample=getattr(args, 'pack_no_para_downsample', False),
-                                   downsample_scale=getattr(args, 'pack_downsample_scale', False),
+                                   _type=downsample_type
                                    )
-            self.all_pu = True
+            self.all_ds = True
         else:
             self.downsampler = None
+            self.all_ds = False
 
-        self.topk_neg_value = getattr(args, 'pack_residual_topk_neg_value', 0.001)
-        self.activation_method = getattr(args, 'pack_residual_activation', 'none')
-        self.activation_factor = getattr(args, 'pack_residual_activation_factor', 1.0)
-
-        self.pack_residual_no_ban_norm = getattr(args, 'pack_residual_no_ban_norm', False)
-        self.pad_r = getattr(args, 'pack_pad_r', False)
-        self.all_dual = getattr(args, 'pack_all_dual', False)
-        self.singlelabel = getattr(args, 'pack_singlelabel', False)
+        self.pad_r = pad_r
+        self.singlelabel = singlelabel
 
         self.apply(initialize_weights)
 
-    def apply_inference_downsample(self, x, always=False):
+    def apply_inference_downsample(self, x):
         if self.downsampler is not None:
             _tmp = self.downsampler.pool_factor
             _tmp_r = self.downsampler.r
             self.downsampler.pool_factor = None
             if _tmp is not None:
                 self.downsampler.r = _tmp_r // _tmp
-            x, _ = self.downsampler(x, shuffle=False)
+            x = self.downsampler(x, shuffle=False)
             self.downsampler.pool_factor = _tmp
             self.downsampler.r = _tmp_r
 
@@ -177,18 +120,16 @@ class PackMIL(nn.Module):
 
             if self.token_dropout > 0:
                 _token_dropout = self.token_dropout
-                _token_dropout_sub = 0.
 
                 max_feat_num = max([feat.size(0) for feat in x])
                 keep_rate = 1 - self.token_dropout
-                # keep_rate = 1 - token_dp
                 max_feat_num = int(int(max_feat_num * keep_rate) / self.downsample_r)
-                if max_feat_num > self.group_max_seq_len and not self.no_dynamic_length:
+                if max_feat_num > self.group_max_seq_len:
                     pack_len = self.group_max_seq_len * 2
                 else:
                     pack_len = self.group_max_seq_len
 
-                if self.is_surv:
+                if self.task_type == 'surv':
                     y, c = label
                     _label = torch.cat([y.unsqueeze(-1), c.unsqueeze(-1)], dim=1)
                 else:
@@ -202,15 +143,13 @@ class PackMIL(nn.Module):
                     pool=self.pool,
                     device=x[0].device,
                     need_attn_mask=self.need_attn_mask,
-                    token_dropout_sub=_token_dropout_sub,
                     labels=_label,
                     poses=pos,
                     residual=self.residual,
                     seq_downsampler=self.downsampler,
                     enable_drop=self.residual,
-                    all_pu=self.all_pu,
+                    all_pu=self.all_ds,
                     pad_r=self.pad_r,
-                    all_dual=self.all_dual,
                 )
                 x, attn_mask, key_pad_mask, num_feats, batched_feat_ids, cls_token_mask, batched_feat_ids_1, key_pad_mask_no_cls, pos, batched_label, batched_num_ps = kept_dict.values()
 
@@ -265,8 +204,7 @@ class PackMIL(nn.Module):
                     'residual': True,
                 }
 
-                x_res = self.mil(x_res, pack_args=pack_res_args,
-                                 ban_norm=True if not self.pack_residual_no_ban_norm else False,**mil_kwargs)
+                x_res = self.mil(x_res, pack_args=pack_res_args, ban_norm=True, **mil_kwargs)
 
                 if self.predictor_res is not None:
                     # DSMIL
@@ -277,30 +215,26 @@ class PackMIL(nn.Module):
                 else:
                     _logits_res = self.predictor(x_res)
 
-                if self.is_surv:
+                if self.task_type == 'surv':
                     _is_multi_lalbel = isinstance(self.residual_loss, BCESurvLoss)
                 else:
                     _is_multi_lalbel = not (isinstance(self.residual_loss, nn.CrossEntropyLoss)
                                             or isinstance(self.residual_loss, AsymmetricLossSingleLabel))
-                if self.is_surv:
+                if self.task_type == 'surv':
                     _task = 'surv'
-                elif self.is_grad:
+                elif self.task_type == 'grade':
                     _task = 'grade'
                 else:
                     _task = 'subtype'
                 y_res = mixup_target_batched(
                     label_res,
-                    num_classes=self.num_classes,
-                    smoothing=self.residual_smooth,
+                    num_classes=self.n_classes,
                     multi_label=_is_multi_lalbel,
-                    use_label_activation=(self.activation_method != 'none'),
-                    activation_method=self.activation_method,
-                    activation_factor=self.activation_factor,
                     batched_num_ps=batched_num_ps_res if self.residual_ps_weight else None,
                     target_task=_task
                 )
                 if isinstance(_logits_res, list):
-                    if self.is_surv:
+                    if self.task_type == 'surv':
                         aux_loss = self.residual_loss(Y=y_res['Y'], c=y_res['c'], Y_censored=y_res['Y_censored'],
                                                       logits=_logits_res[0])
                     else:
@@ -309,7 +243,7 @@ class PackMIL(nn.Module):
                         aux_loss = self.residual_loss(_logits_res[0], y_res)
 
                 else:
-                    if self.is_surv:
+                    if self.task_type == 'surv':
                         aux_loss = self.residual_loss(Y=y_res['Y'], c=y_res['c'], Y_censored=y_res['Y_censored'],
                                                       logits=_logits_res)
 
@@ -351,4 +285,8 @@ class PackMIL(nn.Module):
                 x[1] = x_res[1]
             else:
                 x = x_res
+<<<<<<< HEAD
             return x
+=======
+            return x
+>>>>>>> dev_local

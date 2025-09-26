@@ -23,7 +23,7 @@ pack_residual_loss: asl_single
 aux_alpha: 0.2
 pack_residual_ps_weight: true
 lr: 0.001
-pack_downsample_mode: no_pu
+pack_downsample_mode: none
 mil_norm: bn
 no_norm_pad: true
 pack_singlelabel: true

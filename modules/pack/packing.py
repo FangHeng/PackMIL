@@ -101,15 +101,15 @@ def get_packs(x,
         if feat_single.numel() > (
         0 if all_pu else min_seq_len * _r) and seq_downsampler is not None:
             if isinstance(seq_downsampler, ADS):
-                feat_single_ds, _ = seq_downsampler(feat_single.unsqueeze(0), shuffle=True, key_pad_mask=None,
+                feat_single_ds = seq_downsampler(feat_single.unsqueeze(0), shuffle=True,
                                                     downsample=len(feat_single) > min_seq_len * _r,
                                                     )
-                feat_multi_ds, _ = seq_downsampler(feat_multi.unsqueeze(0), shuffle=True, key_pad_mask=None,
+                feat_multi_ds = seq_downsampler(feat_multi.unsqueeze(0), shuffle=True,
                                                    downsample=len(feat_multi) > min_seq_len * _r,
                                                    )
             else:
-                feat_single_ds, _ = seq_downsampler(feat_single.unsqueeze(0), shuffle=True, key_pad_mask=None)
-                feat_multi_ds, _ = seq_downsampler(feat_multi.unsqueeze(0), shuffle=True, key_pad_mask=None)
+                feat_single_ds = seq_downsampler(feat_single.unsqueeze(0), shuffle=True)
+                feat_multi_ds = seq_downsampler(feat_multi.unsqueeze(0), shuffle=True)
 
             feat_single = feat_single_ds.squeeze(0)
             feat_multi = feat_multi_ds.squeeze(0)

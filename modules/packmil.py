@@ -7,7 +7,7 @@ from .pack.pack_baseline import MILBase, DAttention, SAttention, DSAttention, RR
 from .pack.pack_util import *
 from .pack.packing import get_packs
 from .pack.ads import ADS
-from .pack.pack_loss import NLLSurvMulLoss, BCESurvLoss, FocalLoss
+from .pack.pack_loss import NLLSurvMulLoss, FocalLoss
 
 class PackMIL(nn.Module):
     def __init__(self, mil='abmil', task_type="sub", token_dropout=0.5, group_max_seq_len=2048, min_seq_len=512,
@@ -16,9 +16,6 @@ class PackMIL(nn.Module):
                  downsample_type='random', **mil_kwargs):
         super(PackMIL, self).__init__()
 
-        if 'mil_norm' in mil_kwargs:
-            if mil_kwargs['mil_norm'] == 'bn':
-                no_norm_pad = True
         self.pool = mil_kwargs.get('pool', 'cls_token')
         mil_kwargs['attn_type'] = 'naive'
         if self.pool == 'cls_token':
@@ -80,7 +77,7 @@ class PackMIL(nn.Module):
         self.token_dropout = token_dropout
         self.group_max_seq_len = group_max_seq_len
         self.min_seq_len = min_seq_len
-        self.no_norm_pad = no_norm_pad
+        self.no_norm_pad = mil_kwargs.get('mil_norm') == 'bn'
         self.residual = pack_residual
         self.residual_ps_weight = residual_ps_weight
         self.downsample_r = residual_downsample_r
@@ -216,7 +213,7 @@ class PackMIL(nn.Module):
                     _logits_res = self.predictor(x_res)
 
                 if self.task_type == 'surv':
-                    _is_multi_lalbel = isinstance(self.residual_loss, BCESurvLoss)
+                    _is_multi_lalbel = False
                 else:
                     _is_multi_lalbel = not (isinstance(self.residual_loss, nn.CrossEntropyLoss)
                                             or isinstance(self.residual_loss, AsymmetricLossSingleLabel))
@@ -279,3 +276,5 @@ class PackMIL(nn.Module):
                 x[1] = x_res[1]
             else:
                 x = x_res
+
+            return x

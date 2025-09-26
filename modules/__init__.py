@@ -38,7 +38,7 @@ def build_model(args,device):
             residual_type=args.pack_residual_type,
             residual_ps_weight=args.pack_residual_ps_weight,
             singlelabel=args.pack_singlelabel,
-            downsample_r=args.pack_residual_downsample_r,
+            residual_downsample_r=args.pack_residual_downsample_r,
             pad_r=args.pack_pad_r,
             epeg_k=args.epeg_k,
             crmsa_k=args.crmsa_k,
@@ -52,13 +52,6 @@ def build_model(args,device):
 
 def build_mil(args,model_name,device):
     others = {}
-
-    if args.teacher_init is not None:
-        if not args.teacher_init.endswith('.pt'):
-            _str = 'fold_{fold}_model_best.pt'.format(fold=args.fold_curr)
-            _teacher_init = os.path.join(args.teacher_init,_str)
-        else:
-            _teacher_init = args.teacher_init
 
     genera_model_params,genera_trans_params = get_mil_model_params(args)
 

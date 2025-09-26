@@ -2,7 +2,7 @@
 
 <p align="center">
 <a href="https://arxiv.org/pdf/2509.20923"><img src="https://img.shields.io/badge/arXiv-Paper-b31b1b?logo=Arxiv"></a>
-<!-- <a href=""><img src="https://img.shields.io/badge/HuggingFace-Data-ffd21e?logo=huggingface"></a> -->
+<a href=""><img src="https://img.shields.io/badge/HuggingFace-Data-ffd21e?logo=huggingface"></a>
 <a href="https://pan.baidu.com/s/1OuiIP3sB68IGZeId4s4K7Q?pwd=ujtq"><img src="https://img.shields.io/badge/百度网盘-数据-06a7ff?logo=baidu"></a>
 <!-- <a href=""><img src="https://img.shields.io/badge/知乎-中文讲解-1772f6?logo=zhihu"></a> -->
 </p>
@@ -38,15 +38,16 @@ Computational pathology (CPath) digitizes pathology slides into whole slide imag
 Computational pathology (CPath) digitizes pathology slides into whole slide images (WSIs), enabling analysis for critical healthcare tasks such as cancer diagnosis and prognosis. However, WSIs possess **extremely long sequence lengths** (up to 200K), **significant length variations** (from 200 to 200K), and **limited supervision**. These extreme variations in sequence length lead to high data heterogeneity and redundancy. Conventional methods often compromise on training efficiency and optimization to preserve such heterogeneity under limited supervision. To comprehensively address these challenges, we propose a pack-based MIL framework. It packs multiple sampled, variable-length feature sequences into fixed-length ones, enabling batched training while preserving data heterogeneity. Moreover, we introduce a residual branch that composes discarded features from multiple slides into a *hyperslide* which is trained with tailored labels. It offers multi-slide supervision while mitigating feature loss from sampling. Meanwhile, an attention-driven downsampler is introduced to compress features in both branches to reduce redundancy. By alleviating these challenges, our approach achieves an accuracy improvement of up to 8\% while using only 12\% of the training time in the PANDA(UNI). Extensive experiments demonstrate that focusing data challenges in CPath holds significant potential in the era of foundation models.  -->
 
 
-
-<!-- # TODO
+# TODO
 
 - [x] Add the code for the training and testing of the model.
 - [x] Add the code for the preprocessing of the datasets.
+- [ ] Upload experiment Docker environment.
+- [ ] Upload the extracted features of the datasets.
 - [ ] Add the code for the visualization of the results.
-- [ ] Add the extracted features of the datasets.
-- [ ] Improving README document. -->
+- [ ] Improving README document.
 <!-- - [ ] Improving the code structure. -->
+
 
 
 # Usage
@@ -149,19 +150,19 @@ abmilx_model = DAttentionX(
 - Grading
 
 ```bash
-CUDA_VISIBLE_DEVICES=$TARGET_GPU bash single_train.sh train --datasets=panda --project=your_project --dataset_root=/path/to/your/dataset -c=../config/feat_pack_panda.yaml --title={fm}_panda_abmil_bs128_packdual40_lr10 --csv_path=/path/to/your/label --model=abmil --log_iter=100 --output_path=/path/to/your/output/ --batch_size=128 --token_dropout=0.4 --wandb
+CUDA_VISIBLE_DEVICES=$TARGET_GPU bash single_train.sh train --datasets=panda --project=your_project --dataset_root=/path/to/your/dataset -c=../config/feat_pack_panda.yaml --title={fm}_panda_abmil_bs128_packdual40_lr10 --csv_path=/path/to/your/label --model=abmil --log_iter=100 --output_path=/path/to/your/output/ --batch_size=128 --token_dropout=0.4 --input_dim=feat_dim --wandb
 ```
 
 - Sub-typing
 
 ```bash
-CUDA_VISIBLE_DEVICES=$TARGET_GPU bash single_train.sh train --datasets=brca --project=your_project --dataset_root=/path/to/your/dataset -c=../config/feat_pack_brca.yaml --title={fm}_brca_abmil_bs32_packdual60_dsr4_lr05 --csv_path=/path/to/your/label --model=abmil --log_iter=10 --output_path=/path/to/your/output/ --batch_size=32 --token_dropout=0.6 --wandb
+CUDA_VISIBLE_DEVICES=$TARGET_GPU bash single_train.sh train --datasets=brca --project=your_project --dataset_root=/path/to/your/dataset -c=../config/feat_pack_brca.yaml --title={fm}_brca_abmil_bs32_packdual60_dsr4_lr05 --csv_path=/path/to/your/label --model=abmil --log_iter=10 --output_path=/path/to/your/output/ --batch_size=32 --token_dropout=0.5 --input_dim=feat_dim --wandb
 ```
 
 - Survival
 
 ```bash
-CUDA_VISIBLE_DEVICES=$TARGET_GPU bash single_train.sh train --datasets=surv_{dataset} --project=your_project --dataset_root=/path/to/your/dataset -c=../config/feat_surv.yaml --title={fm}_brca_abmil_bs32_packdual60_dsr4_lr05 --csv_path=/path/to/your/survival_label --model=abmil --log_iter=10 --output_path=/path/to/your/output/ --batch_size=32 --token_dropout=0.6 --wandb
+CUDA_VISIBLE_DEVICES=$TARGET_GPU bash single_train.sh train --datasets=surv_{dataset} --project=your_project --dataset_root=/path/to/your/dataset -c=../config/feat_surv.yaml --title=surv_{fm}_brca_abmil_bs32_packdual50_dsr4_lr05 --csv_path=/path/to/your/survival_label --model=abmil --log_iter=10 --output_path=/path/to/your/output/ --batch_size=32 --token_dropout=0.5 --input_dim=feat_dim --wandb
 ```
 
 <!-- ## Packed You Model -->

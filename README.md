@@ -42,7 +42,7 @@ Computational pathology (CPath) digitizes pathology slides into whole slide imag
 
 - [x] Add the code for the training and testing of the model.
 - [x] Add the code for the preprocessing of the datasets.
-- [ ] Upload experiment Docker environment.
+- [x] Upload experiment Docker environment.
 - [ ] Upload the extracted features of the datasets (Huggingface, Baidu Netdisk, and ModelScope).
 - [ ] Add the code for the visualization of the results.
 - [ ] Improving README document.

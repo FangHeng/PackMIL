@@ -5,7 +5,7 @@
 <a href=""><img src="https://img.shields.io/badge/HuggingFace-Data-ffd21e?logo=huggingface"></a>
 <a href="https://www.modelscope.cn/datasets/HENGFANG/CPathPatchFeature"><img src="https://img.shields.io/badge/ModelScope-Data-624aff?logo=data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjFlbSIgc3R5bGU9ImZsZXg6bm9uZTtsaW5lLWhlaWdodDoxIiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIxZW0iIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHRpdGxlPk1vZGVsU2NvcGU8L3RpdGxlPjxwYXRoIGQ9Ik0wIDcuOTY3aDIuNjY3djIuNjY3SDB6TTggMTAuNjMzaDIuNjY3VjEzLjNIOHoiIGZpbGw9IiMzNkNFRDAiPjwvcGF0aD48cGF0aCBkPSJNMCAxMC42MzNoMi42NjdWMTMuM0gwek0yLjY2NyAxMy4zaDIuNjY2djIuNjY3SDh2Mi42NjZIMi42NjdWMTMuM3pNMi42NjcgNS4zSDh2Mi42NjdINS4zMzN2Mi42NjZIMi42NjdWNS4zek0xMC42NjcgMTMuM2gyLjY2N3YyLjY2N2gtMi42Njd6IiBmaWxsPSIjNjI0QUZGIj48L3BhdGg+PHBhdGggZD0iTTI0IDcuOTY3aC0yLjY2N3YyLjY2N0gyNHpNMTYgMTAuNjMzaC0yLjY2N1YxMy4zSDE2eiIgZmlsbD0iIzM2Q0VEMCI+PC9wYXRoPjxwYXRoIGQ9Ik0yNCAxMC42MzNoLTIuNjY3VjEzLjNIMjR6TTIxLjMzMyAxMy4zaC0yLjY2NnYyLjY2N0gxNnYyLjY2Nmg1LjMzM1YxMy4zek0yMS4zMzMgNS4zSDE2djIuNjY3aDIuNjY3djIuNjY2aDIuNjY2VjUuM3oiIGZpbGw9IiM2MjRBRkYiPjwvcGF0aD48L3N2Zz4="></a>
 <a href="https://pan.baidu.com/s/1OuiIP3sB68IGZeId4s4K7Q?pwd=ujtq"><img src="https://img.shields.io/badge/百度网盘-数据-06a7ff?logo=baidu"></a>
-<a href="https://zhuanlan.zhihu.com/p/1955955919067263843"><img src="https://img.shields.io/badge/知乎-中文讲解-1772f6?logo=zhihu"></a>
+<a href="https://zhuanlan.zhihu.com/p/1955955919067263843"><img src="https://img.shields.io/badge/知乎-中文导读-1772f6?logo=zhihu"></a>
 </p>
 
 <h5 align="center"><em>Wenhao Tang<sup>*</sup>, Heng Fang<sup>*</sup>, Ge Wu, Xiang Li<sup>†</sup>, Ming-Ming Cheng<sup>†</sup> </em></h5>

@@ -120,7 +120,7 @@ If you have raw Whole-Slide Image (WSI) data, you can preprocess it as follows:
     > You can also extract all the required features following the process of [TRIDENT](https://github.com/mahmoodlab/TRIDENT).
 
     ```bash
-    CUDA_VISIBLE_DEVICES=$TARGET_GPUs python extract_features_fp.py \
+    CUDA_VISIBLE_DEVICES=$TARGET_GPUs python CLAM/extract_features_fp.py \
                                         --data_h5_dir DIR_TO_COORDS \
                                         --data_slide_dir DATA_DIRECTORY \
                                         --csv_path CSV_FILE_NAME \

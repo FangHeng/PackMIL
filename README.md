@@ -44,7 +44,7 @@ Computational pathology (CPath) digitizes pathology slides into whole slide imag
 - [x] Add the code for the training and testing of the model.
 - [x] Add the code for the preprocessing of the datasets.
 - [x] Upload experiment Docker environment.
-- [ ] Upload the extracted features of the datasets (Huggingface, Baidu Netdisk, and ModelScope).
+- [x] Upload the extracted features of the datasets (Huggingface, Baidu Netdisk, and ModelScope).
 - [ ] Add the code for the visualization of the results.
 - [ ] Improving README document.
 <!-- - [ ] Improving the code structure. -->
@@ -95,7 +95,7 @@ We recommend using Docker for a reproducible environment. Alternatively, you can
 #### Download Preprocessed Feature
 
 We provide preprocessed patch features for all datasets. You can download them from:
-[Hugginface](), [ModelScope](https://www.modelscope.cn/datasets/HENGFANG/CPathPatchFeature), [Baidu Netdisk](https://pan.baidu.com/s/1OuiIP3sB68IGZeId4s4K7Q?pwd=ujtq) (Password: ujtq)
+[Hugginface](https://huggingface.co/datasets/Dearcat/CPathPatchFeature), [ModelScope](https://www.modelscope.cn/datasets/HENGFANG/CPathPatchFeature), [Baidu Netdisk](https://pan.baidu.com/s/1OuiIP3sB68IGZeId4s4K7Q?pwd=ujtq) (Password: ujtq)
 
 #### Preprocess Raw Data
 

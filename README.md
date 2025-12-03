@@ -1,4 +1,4 @@
-<h1 align="center"> Revisiting Data Challenges of Computational Pathology: A Pack-based Multiple Instance Learning Framework </h1>
+<h1 align="center"> Revisiting Data Challenges of Computational Pathology: A Pack-based Multiple Instance Learning Training Framework </h1>
 
 <p align="center">
 <a href="https://arxiv.org/pdf/2509.20923"><img src="https://img.shields.io/badge/arXiv-Paper-b31b1b?logo=Arxiv"></a>
@@ -10,7 +10,7 @@
 
 <h5 align="center"><em>Wenhao Tang<sup>*</sup>, Heng Fang<sup>*</sup>, Ge Wu, Xiang Li<sup>†</sup>, Ming-Ming Cheng<sup>†</sup> </em></h5>
 
-This repository provides the **official PyTorch implementation** of the **PackMIL framework** introduced in **Revisiting Data Challenges of Computational Pathology: A Pack-based Multiple Instance Learning Framework**.
+This repository provides the **official PyTorch implementation** of the **PackMIL framework** introduced in **Revisiting Data Challenges of Computational Pathology: A Pack-based Multiple Instance Learning Training Framework**.
 
 <p align="center">
   <a href="#what-is-packmil">What is PackMIL?</a> |
